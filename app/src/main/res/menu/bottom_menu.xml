@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_chat"
+        android:icon="@drawable/ic_baseline_chat_24"
+        android:title="Chat"
+        app:cnb_iconColor="@color/colorPrimary"/>
+    <item
+        android:id="@+id/menu_users"
+        android:icon="@drawable/ic_baseline_people_24"
+        android:title="Users"
+        app:cnb_iconColor="@color/colorPrimary"/>
+    <item
+        android:id="@+id/menu_profile"
+        android:icon="@drawable/ic_baseline_account_circle_24"
+        android:title="Profile"
+        app:cnb_iconColor="@color/colorPrimary" />
+</menu>
