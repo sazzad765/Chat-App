@@ -53,7 +53,14 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
 
         Chat chat = mChat.get(position);
 
-        holder.show_message.setText(chat.getMessage());
+
+        if (chat.getType().equals("image")){
+            holder.chatImageView.setVisibility(View.VISIBLE);
+            holder.show_message.setVisibility(View.INVISIBLE);
+            Glide.with(mContext).load(chat.getMessage()).into(holder.chatImageView);
+        }else {
+            holder.show_message.setText(chat.getMessage());
+        }
 
         if (imageurl.equals("default")){
             holder.profile_image.setImageResource(R.mipmap.ic_launcher);
@@ -81,7 +88,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public  class ViewHolder extends RecyclerView.ViewHolder{
 
         public TextView show_message;
-        public ImageView profile_image;
+        public ImageView profile_image,chatImageView;
         public TextView txt_seen;
 
         public ViewHolder(View itemView) {
@@ -90,6 +97,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             show_message = itemView.findViewById(R.id.show_message);
             profile_image = itemView.findViewById(R.id.profile_image);
             txt_seen = itemView.findViewById(R.id.txt_seen);
+            chatImageView = itemView.findViewById(R.id.chatImageView);
         }
     }
 

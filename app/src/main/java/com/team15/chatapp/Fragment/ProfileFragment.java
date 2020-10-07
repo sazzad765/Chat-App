@@ -68,13 +68,16 @@ public class ProfileFragment extends Fragment {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (getActivity() == null) {
+                    return;
+                }
                 User user = dataSnapshot.getValue(User.class);
                 assert user != null;
                 username.setText(user.getUsername());
                 if (user.getImageURL().equals("default")) {
                     image_profile.setImageResource(R.mipmap.ic_launcher);
                 } else {
-                    Glide.with(Objects.requireNonNull(getActivity())).load(user.getImageURL()).into(image_profile);
+                    Glide.with(getActivity()).load(user.getImageURL()).into(image_profile);
                 }
             }
 
@@ -87,7 +90,6 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), CreateProfileActivity.class);
-
                 Pair[] pairs = new Pair[2];
                 pairs[0] = new Pair<View,String>(image_profile,"profileImgTransition");
                 pairs[1] = new Pair<View,String>(txt_edit,"txtNameTransition");

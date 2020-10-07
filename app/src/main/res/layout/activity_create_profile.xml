@@ -61,5 +61,14 @@
             android:text="@string/submit" />
     </LinearLayout>
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_margin="10dp"
+        app:srcCompat="@drawable/ic_baseline_arrow_back_24" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

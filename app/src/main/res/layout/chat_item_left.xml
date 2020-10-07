@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="300dp"
     android:padding="8dp"
+    android:maxHeight="300dp"
     android:layout_height="wrap_content">
 
     <de.hdodenhof.circleimageview.CircleImageView
@@ -14,13 +15,23 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/profile_image"
-        android:layout_marginLeft="5dp"
+        android:layout_toEndOf="@id/profile_image"
+        android:layout_marginStart="5dp"
         android:text="hello"
         android:id="@+id/show_message"
         android:textSize="18sp"
         android:padding="8dp"
         android:background="@drawable/background_left"/>
+
+    <ImageView
+        android:id="@+id/chatImageView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_toEndOf="@id/profile_image"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="5dp" />
 
     <TextView
         android:layout_width="wrap_content"

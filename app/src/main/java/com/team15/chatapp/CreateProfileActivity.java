@@ -12,7 +12,6 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -32,13 +31,10 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 import com.team15.chatapp.Model.User;
-
 import java.util.HashMap;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
-
-import static java.security.AccessController.getContext;
 
 public class CreateProfileActivity extends AppCompatActivity {
     FirebaseAuth auth;
@@ -112,14 +108,16 @@ public class CreateProfileActivity extends AppCompatActivity {
         assert firebaseUser != null;
         String userId = firebaseUser.getUid();
 
-        User user = new User(userId, username, url, "offline", "user", username.toLowerCase());
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("username",username);
+        hashMap.put("userType", username.toLowerCase());
 
-        reference.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+        reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+        reference.updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
-                    finish();
+                    Toast.makeText(CreateProfileActivity.this, "Update Profile", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(CreateProfileActivity.this, "Create Failed", Toast.LENGTH_SHORT).show();
                 }
@@ -196,7 +194,7 @@ public class CreateProfileActivity extends AppCompatActivity {
             imageUri = data.getData();
 
             if (uploadTask != null && uploadTask.isInProgress()) {
-                Toast.makeText(CreateProfileActivity.this, "Upload in preogress", Toast.LENGTH_SHORT).show();
+                Toast.makeText(CreateProfileActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
             } else {
                 uploadImage();
             }
