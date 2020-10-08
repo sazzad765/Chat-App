@@ -42,16 +42,15 @@
         android:id="@+id/editText_phone"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
         android:layout_marginBottom="20dp"
+        android:autofillHints="phoneNumberDevice"
         android:background="@drawable/login_edit_text"
         android:drawablePadding="10dp"
         android:hint="@string/enter_number"
         android:inputType="phone"
-        android:autofillHints="phoneNumberDevice"
         app:layout_constraintBottom_toTopOf="@+id/btn_SendCode"
         app:layout_constraintEnd_toStartOf="@+id/guideline2"
-        app:layout_constraintStart_toEndOf="@+id/textView2" />
+        app:layout_constraintStart_toStartOf="@+id/guideline" />
 
     <Button
         android:id="@+id/btn_SendCode"
@@ -88,16 +87,6 @@
         app:layout_constraintStart_toStartOf="@+id/guideline"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_launcher_foreground" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+88"
-        android:theme="@style/txt_login"
-        app:layout_constraintBottom_toBottomOf="@+id/editText_phone"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="@+id/editText_phone" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

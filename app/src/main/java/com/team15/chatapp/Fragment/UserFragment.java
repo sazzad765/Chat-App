@@ -38,6 +38,9 @@ public class UserFragment extends Fragment {
     private List<User> mUsers;
     private EditText search_users;
     private TextView txtNoData;
+    public UserFragment(){
+
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,10 +49,14 @@ public class UserFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_view);
         txtNoData = view.findViewById(R.id.txtNoData);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         mUsers = new ArrayList<>();
+        userAdapter=new UserAdapter(mUsers,false);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext() ,LinearLayoutManager.VERTICAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(userAdapter);
+
+
 
         getAllUsers();
 
@@ -75,7 +82,6 @@ public class UserFragment extends Fragment {
     }
 
     private void searchUsers(String s) {
-
         final FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         Query query = FirebaseDatabase.getInstance().getReference("Users").orderByChild("search")
                 .startAt(s)
@@ -87,14 +93,11 @@ public class UserFragment extends Fragment {
                 mUsers.clear();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     User user = snapshot.getValue(User.class);
-                    assert user != null;
-                    assert fUser != null;
                     if (!user.getId().equals(fUser.getUid())) {
                         mUsers.add(user);
                     }
+                    userAdapter.notifyDataSetChanged();
                 }
-                userAdapter = new UserAdapter(getContext(), mUsers, false);
-                recyclerView.setAdapter(userAdapter);
             }
 
             @Override
@@ -123,8 +126,7 @@ public class UserFragment extends Fragment {
                             mUsers.add(user);
                         }
                     }
-                    userAdapter = new UserAdapter(getContext(), mUsers, false);
-                    recyclerView.setAdapter(userAdapter);
+                    userAdapter.notifyDataSetChanged();
                     if (mUsers.size() == 0) {
                         txtNoData.setVisibility(View.VISIBLE);
                     } else {

@@ -21,8 +21,11 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.team15.chatapp.Model.User;
 
 import java.util.concurrent.TimeUnit;
@@ -41,22 +44,22 @@ public class VerifyCodeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_verify_code);
 
-        viewPhone=findViewById(R.id.view_phone);
-        editTextCode= findViewById(R.id.editText_code);
-        btnLogin=findViewById(R.id.btn_Login);
-        progressBar=findViewById(R.id.progressBar2);
+        viewPhone = findViewById(R.id.view_phone);
+        editTextCode = findViewById(R.id.editText_code);
+        btnLogin = findViewById(R.id.btn_Login);
+        progressBar = findViewById(R.id.progressBar2);
 
         mAuth = FirebaseAuth.getInstance();
 
-        String phoneNumber=getIntent().getStringExtra("number");
+        String phoneNumber = getIntent().getStringExtra("number");
 
         sendVerificationCode(phoneNumber);
     }
 
     public void signUp(View view) {
-        String code= editTextCode.getText().toString();
+        String code = editTextCode.getText().toString();
 
-        if(code.isEmpty() || code.length()<6){
+        if (code.isEmpty() || code.length() < 6) {
             editTextCode.setError("Enter Code....");
             editTextCode.requestFocus();
             return;
@@ -65,7 +68,7 @@ public class VerifyCodeActivity extends AppCompatActivity {
         verifySignInCode(code);
     }
 
-    private void verifySignInCode(String code){
+    private void verifySignInCode(String code) {
         PhoneAuthCredential credential = PhoneAuthProvider.getCredential(codeSent, code);
         signInWithPhoneAuthCredential(credential);
     }
@@ -76,24 +79,7 @@ public class VerifyCodeActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            FirebaseUser firebaseUser = mAuth.getCurrentUser();
-                            assert firebaseUser != null;
-                            String userId = firebaseUser.getUid();
-                            User user = new User(userId,"default","default","offline","user","default");
-                            reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-                            reference.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()){
-                                        Intent intent = new Intent(VerifyCodeActivity.this, MainActivity.class);
-                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                                        startActivity(intent);
-                                        finish();
-                                    }else {
-                                        Toast.makeText(VerifyCodeActivity.this, "Create Failed", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            });
+                            checkProfile();
                             progressBar.setVisibility(View.INVISIBLE);
                         } else {
                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
@@ -105,31 +91,49 @@ public class VerifyCodeActivity extends AppCompatActivity {
                 });
     }
 
+    private void checkProfile() {
+        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+        final String userId = firebaseUser.getUid();
+        reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
 
-    private void sendVerificationCode(String number){
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    User user = new User(userId, "default", "default", "offline", "user", "default");
+                    reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+                    reference.setValue(user);
+                }
+                Intent intent = new Intent(VerifyCodeActivity.this, MainActivity.class);
+//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                finish();
+            }
 
-        viewPhone.setText(number);
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
 
-
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                number,        // Phone number to verify
-                60,                 // Timeout duration
-                TimeUnit.SECONDS,   // Unit of timeout
-                this,               // Activity (for callback binding)
-                mCallbacks);        // OnVerificationStateChangedCallbacks
-
+            }
+        });
     }
 
+    private void sendVerificationCode(String number) {
+        viewPhone.setText(number);
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                number,
+                60,
+                TimeUnit.SECONDS,
+                this,
+                mCallbacks);
 
+    }
 
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 
         @Override
         public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
-
             String code = phoneAuthCredential.getSmsCode();
-
-            if(code !=null){
+            if (code != null) {
                 editTextCode.setText(code);
                 progressBar.setVisibility(View.VISIBLE);
                 verifySignInCode(code);
@@ -146,10 +150,15 @@ public class VerifyCodeActivity extends AppCompatActivity {
         @Override
         public void onCodeSent(String s, PhoneAuthProvider.ForceResendingToken forceResendingToken) {
             super.onCodeSent(s, forceResendingToken);
-
             codeSent = s;
         }
     };
 
-
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
 }

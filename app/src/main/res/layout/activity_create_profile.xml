@@ -51,6 +51,24 @@
             android:transitionName="txtNameTransition"
             android:background="@drawable/login_edit_text"
             android:hint="Enter Name" />
+        <CheckBox
+            android:id="@+id/checkBoxSeller"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:gravity="start|center"
+            android:textColor="@color/white"
+            android:layout_marginTop="5dp"
+            android:text="Upgrade as seller"/>
+        <EditText
+            android:id="@+id/editTextSeller"
+            android:layout_width="200dp"
+            android:layout_height="35dp"
+            android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:theme="@style/btn_login"
+            android:transitionName="txtNameTransition"
+            android:background="@drawable/login_edit_text"
+            android:hint="enter seller upgrade code" />
 
         <Button
             android:id="@+id/btnCreate"

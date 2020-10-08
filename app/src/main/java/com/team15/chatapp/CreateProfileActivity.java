@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -39,9 +41,10 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class CreateProfileActivity extends AppCompatActivity {
     FirebaseAuth auth;
     DatabaseReference reference;
-    EditText editTextName;
+    EditText editTextName,editTextSeller;
     Button btnCreate;
     CircleImageView image_profile;
+    CheckBox checkBoxSeller;
     FirebaseUser fUser;
 
     StorageReference storageReference;
@@ -49,6 +52,8 @@ public class CreateProfileActivity extends AppCompatActivity {
     private Uri imageUri;
     private StorageTask<UploadTask.TaskSnapshot> uploadTask;
     String url;
+    String SELLER_CODE = "3424";
+    String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +63,8 @@ public class CreateProfileActivity extends AppCompatActivity {
         editTextName = findViewById(R.id.editTextName);
         btnCreate = findViewById(R.id.btnCreate);
         image_profile = findViewById(R.id.profile_image);
+        checkBoxSeller = findViewById(R.id.checkBoxSeller);
+        editTextSeller = findViewById(R.id.editTextSeller);
 
         auth = FirebaseAuth.getInstance();
         fUser = auth.getCurrentUser();
@@ -73,6 +80,16 @@ public class CreateProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 openImage();
+            }
+        });
+        checkBoxSeller.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (checkBoxSeller.isChecked()){
+                    editTextSeller.setVisibility(View.VISIBLE);
+                }else {
+                    editTextSeller.setVisibility(View.GONE);
+                }
             }
         });
         showProfile();
@@ -103,6 +120,17 @@ public class CreateProfileActivity extends AppCompatActivity {
     }
 
     private void updateProfile() {
+        if (checkBoxSeller.isChecked()){
+            String code = editTextSeller.getText().toString();
+            if (SELLER_CODE.equals(code)){
+                userType = "seller";
+            }else {
+                Toast.makeText(this, "wrong code", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }else {
+            userType = "user";
+        }
         String username = editTextName.getText().toString();
         FirebaseUser firebaseUser = auth.getCurrentUser();
         assert firebaseUser != null;
@@ -110,7 +138,8 @@ public class CreateProfileActivity extends AppCompatActivity {
 
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("username",username);
-        hashMap.put("userType", username.toLowerCase());
+        hashMap.put("userType",userType);
+        hashMap.put("search", username.toLowerCase());
 
         reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
         reference.updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {

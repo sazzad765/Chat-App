@@ -39,7 +39,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageView img_menu;
 
     FirebaseUser firebaseUser;
-    DatabaseReference reference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,13 +51,10 @@ public class MainActivity extends AppCompatActivity {
         img_menu = findViewById(R.id.img_menu);
         bottom_menu.setItemSelected(R.id.menu_chat, true);
         bottom_menu.setOnItemSelectedListener(listener);
-        loadFragment(new ChatFragment());
+
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        checkProfile();
-
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
-
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -71,15 +67,14 @@ public class MainActivity extends AppCompatActivity {
                     Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         });
 
-        reference = FirebaseDatabase.getInstance().getReference("Chats");
-        reference.addValueEventListener(new ValueEventListener() {
+        DatabaseReference ref= FirebaseDatabase.getInstance().getReference("Chats");
+        ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 int unread = 0;
@@ -99,14 +94,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
+//        checkProfile();
         img_menu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 menuClick(v);
             }
         });
+        loadFragment(new ChatFragment());
     }
+
 
     private void menuClick(View v){
         PopupMenu popup = new PopupMenu(this, v);
@@ -117,7 +114,9 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.logout:
                         FirebaseAuth.getInstance().signOut();
-                        startActivity(new Intent(MainActivity.this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+                        startActivity(new Intent(MainActivity.this, LoginActivity.class).
+                                setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK));
+                        finish();
                         break;
 //                            case R.id.menu2:
 //                                //handle menu2 click
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void status(String status) {
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
         HashMap<String, Object> hashMap = new HashMap<>();
         hashMap.put("status", status);
         reference.updateChildren(hashMap);
@@ -178,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
     private void checkProfile() {
         assert firebaseUser != null;
         String userId = firebaseUser.getUid();
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
 
         reference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -187,9 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     User user = snapshot.getValue(User.class);
                     if (user.getUsername().equals("default")) {
                         Intent intent = new Intent(MainActivity.this, CreateProfileActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
-                        finish();
                     }
                 }
             }

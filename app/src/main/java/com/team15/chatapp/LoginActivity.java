@@ -1,27 +1,39 @@
 package com.team15.chatapp;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
+import android.Manifest;
+import android.app.Activity;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 
+import android.content.IntentSender;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.karumi.dexter.Dexter;
-import com.karumi.dexter.PermissionToken;
-import com.karumi.dexter.listener.PermissionDeniedResponse;
-import com.karumi.dexter.listener.PermissionGrantedResponse;
-import com.karumi.dexter.listener.PermissionRequest;
-import com.karumi.dexter.listener.single.PermissionListener;
+import com.google.android.gms.auth.api.Auth;
+import com.google.android.gms.auth.api.credentials.Credential;
+import com.google.android.gms.auth.api.credentials.HintRequest;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
 
 
-public class LoginActivity extends AppCompatActivity {
+
+public class LoginActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     private EditText editTextPhone;
     private Button btnSendCode;
-    public String number, phoneNum;
+    public String phoneNum;
+    GoogleApiClient mGoogleApiClient;
+    private int RESOLVE_HINT = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,38 +48,40 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .enableAutoManage(this, this)
+                .addApi(Auth.CREDENTIALS_API)
+                .build();
+        pickNumber();
+    }
+
+    private void pickNumber() {
+        HintRequest hintRequest =
+                new HintRequest.Builder()
+                        .setPhoneNumberIdentifierSupported(true)
+                        .build();
+        PendingIntent mIntent = Auth.CredentialsApi.getHintPickerIntent(mGoogleApiClient, hintRequest);
+        try {
+            startIntentSenderForResult(mIntent.getIntentSender(), RESOLVE_HINT, null, 0, 0, 0);
+        } catch (IntentSender.SendIntentException e) {
+            e.printStackTrace();
+        }
 
     }
-//
-//    private void pickNumber() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            Dexter.withActivity(this)
-//                    .withPermission(Manifest.permission.READ_PHONE_NUMBERS)
-//                    .withListener(new PermissionListener() {
-//                        @Override
-//                        public void onPermissionGranted(PermissionGrantedResponse response) {
-//                            TelephonyManager tMgr = (TelephonyManager) LoginActivity.this.getSystemService(Context.TELEPHONY_SERVICE);
-//                            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                                    this, Manifest.permission.READ_PHONE_NUMBERS) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                                            this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-//                                return;
-//                            }
-//                            String mPhoneNumber = tMgr.getLine1Number();
-//                        }
-//
-//                        @Override
-//                        public void onPermissionDenied(PermissionDeniedResponse response) {
-//
-//                        }
-//
-//                        @Override
-//                        public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-//
-//                        }
-//                    }
-//        };
-//    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RESOLVE_HINT) {
+            if (resultCode == Activity.RESULT_OK) {
+
+                Credential credential = data.getParcelableExtra(Credential.EXTRA_KEY);
+                // credential.getId();  <-- will need to process phone number string
+                editTextPhone.setText(credential.getId());
+            }
+        }
+    }
 
     public void login() {
 
@@ -84,22 +98,25 @@ public class LoginActivity extends AppCompatActivity {
             editTextPhone.requestFocus();
             return;
         }
-        number="+88"+ phoneNum;
-
 
         Intent intent= new Intent(this, VerifyCodeActivity.class);
-        intent.putExtra("number",number);
+        intent.putExtra("number",phoneNum);
         startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
 
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if(FirebaseAuth.getInstance().getCurrentUser() != null){
-            Intent intent= new Intent(this, MainActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-        }
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }
