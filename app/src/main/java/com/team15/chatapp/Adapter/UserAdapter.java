@@ -86,14 +86,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, MessageActivity.class);
-
-                Pair[] pairs = new Pair[2];
-                pairs[0] = new Pair<View, String>(holder.profile_image, "profileImgTransition");
-                pairs[1] = new Pair<View, String>(holder.username, "txtNameTransition");
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation((Activity) context, pairs);
-
                 intent.putExtra("userId", user.getId());
-                context.startActivity(intent, options.toBundle());
+                context.startActivity(intent);
             }
         });
     }

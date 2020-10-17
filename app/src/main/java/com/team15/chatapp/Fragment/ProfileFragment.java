@@ -38,6 +38,7 @@ import com.google.firebase.storage.UploadTask;
 import com.team15.chatapp.CreateProfileActivity;
 import com.team15.chatapp.Model.User;
 import com.team15.chatapp.R;
+import com.team15.chatapp.UpdateProfileActivity;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -89,12 +90,8 @@ public class ProfileFragment extends Fragment {
         txt_edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), CreateProfileActivity.class);
-                Pair[] pairs = new Pair[2];
-                pairs[0] = new Pair<View,String>(image_profile,"profileImgTransition");
-                pairs[1] = new Pair<View,String>(txt_edit,"txtNameTransition");
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(getActivity(),pairs);
-                startActivity(intent,options.toBundle());
+                Intent intent = new Intent(getActivity(), UpdateProfileActivity.class);
+                startActivity(intent);
             }
         });
 

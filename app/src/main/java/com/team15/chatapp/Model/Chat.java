@@ -8,7 +8,7 @@ public class Chat {
     private String type;
     private boolean isSeen;
 
-    public Chat(String sender, String receiver, String message, String type, boolean isSeen) {
+    public Chat(String sender, String receiver, String message, String type, boolean isSeen){
         this.sender = sender;
         this.receiver = receiver;
         this.message = message;
@@ -58,12 +58,4 @@ public class Chat {
     public void setSeen(boolean seen) {
         isSeen = seen;
     }
-
-//    public boolean isIsSeen() {
-//        return isSeen;
-//    }
-//
-//    public void setIsSeen(boolean isSeen) {
-//        this.isSeen = isSeen;
-//    }
 }

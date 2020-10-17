@@ -46,12 +46,11 @@ public class SendNotification extends Observable {
         apiService = Client.getClient("https://fcm.googleapis.com/").create(APIService.class);
     }
 
-    public void send(String receiver, final String username, final String message,String fUserId,String userId) {
+    public void send(String receiver, final String username, final String message,String fUserId) {
         list.add(receiver);
         list.add(username);
         list.add(message);
         list.add(fUserId);
-        list.add(userId);
 
         new SendNotificationAsyncTask(apiService).execute(list);
     }
@@ -64,11 +63,10 @@ public class SendNotification extends Observable {
 
         @Override
         protected Void doInBackground(List... lists) {
-            String receiver = (String) lists[0].get(0);
+            final String receiver = (String) lists[0].get(0);
             final String username = (String) lists[0].get(1);
             final String message = (String) lists[0].get(2);
             final String fUserId = (String) lists[0].get(3);
-            final String userId = (String) lists[0].get(4);
 
             DatabaseReference tokens = FirebaseDatabase.getInstance().getReference("Tokens");
             Query query = tokens.orderByKey().equalTo(receiver);
@@ -77,7 +75,7 @@ public class SendNotification extends Observable {
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     for (DataSnapshot snapshot : dataSnapshot.getChildren()){
                         Token token = snapshot.getValue(Token.class);
-                        Data data = new Data(fUserId, R.mipmap.ic_launcher, username+": "+message, "New Message", userId);
+                        Data data = new Data(fUserId, R.mipmap.ic_launcher, username+": "+message, "New Message", receiver);
 
                         Sender sender = new Sender(data, token.getToken());
 

@@ -1,11 +1,17 @@
 package com.team15.chatapp.Adapter;
 
+import android.app.Dialog;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,22 +24,21 @@ import com.team15.chatapp.R;
 
 import java.util.List;
 
+import static android.content.Context.CLIPBOARD_SERVICE;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
-    public static  final int MSG_TYPE_LEFT = 0;
-    public static  final int MSG_TYPE_RIGHT = 1;
+    public static final int MSG_TYPE_LEFT = 0;
+    public static final int MSG_TYPE_RIGHT = 1;
 
     private Context mContext;
     private List<Chat> mChat;
-    private String imageurl;
 
     FirebaseUser fUser;
 
-    public MessageAdapter(Context mContext, List<Chat> mChat, String imageurl){
+    public MessageAdapter(Context mContext, List<Chat> mChat) {
         this.mChat = mChat;
         this.mContext = mContext;
-        this.imageurl = imageurl;
     }
 
     @NonNull
@@ -49,34 +54,42 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MessageAdapter.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final MessageAdapter.ViewHolder holder, int position) {
 
-        Chat chat = mChat.get(position);
+        final Chat chat = mChat.get(position);
 
-
-        if (chat.getType().equals("image")){
+        if (chat.getType().equals("image")) {
             holder.chatImageView.setVisibility(View.VISIBLE);
             holder.show_message.setVisibility(View.INVISIBLE);
             Glide.with(mContext).load(chat.getMessage()).into(holder.chatImageView);
-        }else {
+        } else {
             holder.show_message.setText(chat.getMessage());
         }
 
-        if (imageurl.equals("default")){
-            holder.profile_image.setImageResource(R.mipmap.ic_launcher);
-        } else {
-            Glide.with(mContext).load(imageurl).into(holder.profile_image);
-        }
-
-        if (position == mChat.size()-1){
-            if (chat.isSeen()){
+        if (position == mChat.size() - 1) {
+            if (chat.isSeen()) {
                 holder.txt_seen.setText("Seen");
             } else {
-                holder.txt_seen.setText("Delivered");
+                holder.txt_seen.setText("Sent");
             }
         } else {
             holder.txt_seen.setVisibility(View.GONE);
         }
+        holder.chatImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ShowPopupDialog(chat.getMessage());
+            }
+        });
+        holder.show_message.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                ClipboardManager clipboard = (ClipboardManager) mContext.getSystemService(CLIPBOARD_SERVICE);
+                clipboard.setText( holder.show_message.getText());
+                Toast.makeText(mContext, "Text copied", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        });
 
     }
 
@@ -85,17 +98,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return mChat.size();
     }
 
-    public  class ViewHolder extends RecyclerView.ViewHolder{
+    public class ViewHolder extends RecyclerView.ViewHolder {
 
         public TextView show_message;
-        public ImageView profile_image,chatImageView;
+        public ImageView chatImageView;
         public TextView txt_seen;
 
         public ViewHolder(View itemView) {
             super(itemView);
 
             show_message = itemView.findViewById(R.id.show_message);
-            profile_image = itemView.findViewById(R.id.profile_image);
             txt_seen = itemView.findViewById(R.id.txt_seen);
             chatImageView = itemView.findViewById(R.id.chatImageView);
         }
@@ -104,10 +116,28 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public int getItemViewType(int position) {
         fUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (mChat.get(position).getSender().equals(fUser.getUid())){
+        if (mChat.get(position).getSender().equals(fUser.getUid())) {
             return MSG_TYPE_RIGHT;
         } else {
             return MSG_TYPE_LEFT;
         }
+    }
+
+    private void ShowPopupDialog(String imageurl) {
+        final Dialog dialogView = new Dialog(mContext);
+        dialogView.setContentView(R.layout.image_view_layout);
+
+        ImageView imageView = dialogView.findViewById(R.id.imageView);
+        ImageButton imgClose = dialogView.findViewById(R.id.imgClose);
+        Glide.with(mContext).load(imageurl).into(imageView);
+
+        imgClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogView.dismiss();
+            }
+        });
+        dialogView.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialogView.show();
     }
 }

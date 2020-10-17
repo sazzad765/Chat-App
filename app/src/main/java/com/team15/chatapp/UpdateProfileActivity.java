@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -39,31 +40,35 @@ import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class CreateProfileActivity extends AppCompatActivity {
+public class UpdateProfileActivity extends AppCompatActivity {
     FirebaseAuth auth;
     DatabaseReference reference;
-    EditText editTextName;
-    Button btnCreate, btnNext;
+    EditText editTextName,editTextSeller;
+    Button btnCreate;
     CircleImageView image_profile;
+    CheckBox checkBoxSeller;
     FirebaseUser fUser;
+    private ImageView imgBack;
 
     StorageReference storageReference;
     private static final int IMAGE_REQUEST = 1;
     private Uri imageUri;
     private StorageTask<UploadTask.TaskSnapshot> uploadTask;
     String url;
-    String username = "default", imageURL = "default";
-    boolean isCreate = false;
+    String SELLER_CODE = "3424";
+    String userType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_profile);
+        setContentView(R.layout.activity_update_profile);
 
         editTextName = findViewById(R.id.editTextName);
         btnCreate = findViewById(R.id.btnCreate);
         image_profile = findViewById(R.id.profile_image);
-        btnNext = findViewById(R.id.btnNext);
+        checkBoxSeller = findViewById(R.id.checkBoxSeller);
+        editTextSeller = findViewById(R.id.editTextSeller);
+        imgBack = findViewById(R.id.imgBack);
 
         auth = FirebaseAuth.getInstance();
         fUser = auth.getCurrentUser();
@@ -81,18 +86,21 @@ public class CreateProfileActivity extends AppCompatActivity {
                 openImage();
             }
         });
+        checkBoxSeller.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (checkBoxSeller.isChecked()){
+                    editTextSeller.setVisibility(View.VISIBLE);
+                }else {
+                    editTextSeller.setVisibility(View.GONE);
+                }
+            }
+        });
         showProfile();
-        btnNext.setOnClickListener(new View.OnClickListener() {
+        imgBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (isCreate) {
-                    Intent intent = new Intent(CreateProfileActivity.this, MainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                } else {
-                    Toast.makeText(CreateProfileActivity.this, "complete your profile", Toast.LENGTH_SHORT).show();
-                }
-
+                finish();
             }
         });
     }
@@ -103,24 +111,14 @@ public class CreateProfileActivity extends AppCompatActivity {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    isCreate = true;
-                    User user = dataSnapshot.getValue(User.class);
-                    assert user != null;
-                    username = user.getUsername();
-                    imageURL = user.getImageURL();
-                    editTextName.setText(username);
-                    if (imageURL.equals("default")) {
-                        image_profile.setImageResource(R.mipmap.ic_launcher);
-                    } else {
-                        url = user.getImageURL();
-                        Glide.with(getApplicationContext()).load(url).into(image_profile);
-                    }
+                User user = dataSnapshot.getValue(User.class);
+                assert user != null;
+                editTextName.setText(user.getUsername());
+                if (user.getImageURL().equals("default")) {
+                    image_profile.setImageResource(R.mipmap.ic_launcher);
                 } else {
-                    String userId = fUser.getUid();
-                    User user = new User(userId, "default", "default", "offline", "user", "default");
-                    reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-                    reference.setValue(user);
+                    url = user.getImageURL();
+                    Glide.with(getApplicationContext()).load(url).into(image_profile);
                 }
             }
 
@@ -132,19 +130,36 @@ public class CreateProfileActivity extends AppCompatActivity {
     }
 
     private void updateProfile() {
-        username = editTextName.getText().toString();
-        String search = username.toLowerCase();
-
+        if (checkBoxSeller.isChecked()){
+            String code = editTextSeller.getText().toString();
+            if (SELLER_CODE.equals(code)){
+                userType = "seller";
+            }else {
+                Toast.makeText(this, "wrong code", Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }else {
+            userType = "user";
+        }
+        String username = editTextName.getText().toString();
         FirebaseUser firebaseUser = auth.getCurrentUser();
         assert firebaseUser != null;
         String userId = firebaseUser.getUid();
-        User user = new User(userId, username, imageURL, "offline", "user", search);
+
+        HashMap<String, Object> hashMap = new HashMap<>();
+        hashMap.put("username",username);
+        hashMap.put("userType",userType);
+        hashMap.put("search", username.toLowerCase());
 
         reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-        reference.setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+        reference.updateChildren(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                Toast.makeText(CreateProfileActivity.this, "success", Toast.LENGTH_SHORT).show();
+                if (task.isSuccessful()) {
+                    Toast.makeText(UpdateProfileActivity.this, "Update Profile", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(UpdateProfileActivity.this, "Create Failed", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -193,19 +208,19 @@ public class CreateProfileActivity extends AppCompatActivity {
 
                         pd.dismiss();
                     } else {
-                        Toast.makeText(CreateProfileActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(UpdateProfileActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
                         pd.dismiss();
                     }
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-                    Toast.makeText(CreateProfileActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateProfileActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     pd.dismiss();
                 }
             });
         } else {
-            Toast.makeText(CreateProfileActivity.this, "No image selected", Toast.LENGTH_SHORT).show();
+            Toast.makeText(UpdateProfileActivity.this, "No image selected", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -218,7 +233,7 @@ public class CreateProfileActivity extends AppCompatActivity {
             imageUri = data.getData();
 
             if (uploadTask != null && uploadTask.isInProgress()) {
-                Toast.makeText(CreateProfileActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
+                Toast.makeText(UpdateProfileActivity.this, "Upload in progress", Toast.LENGTH_SHORT).show();
             } else {
                 uploadImage();
             }
@@ -227,8 +242,8 @@ public class CreateProfileActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        finish();
         super.onBackPressed();
-        Toast.makeText(this, "create your profile", Toast.LENGTH_SHORT).show();
-    }
 
+    }
 }

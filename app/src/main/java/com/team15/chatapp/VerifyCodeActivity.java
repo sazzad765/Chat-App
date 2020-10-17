@@ -18,16 +18,9 @@ import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.team15.chatapp.Model.User;
-
 import java.util.concurrent.TimeUnit;
 
 public class VerifyCodeActivity extends AppCompatActivity {
@@ -79,42 +72,19 @@ public class VerifyCodeActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            checkProfile();
+                            Intent intent = new Intent(VerifyCodeActivity.this, CreateProfileActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
                             progressBar.setVisibility(View.INVISIBLE);
                         } else {
                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
-                                Toast.makeText(getApplicationContext(), "যাচাই কোড ভুল", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Verification code not match", Toast.LENGTH_LONG).show();
                                 progressBar.setVisibility(View.INVISIBLE);
                             }
                         }
                     }
                 });
-    }
-
-    private void checkProfile() {
-        FirebaseUser firebaseUser = mAuth.getCurrentUser();
-        final String userId = firebaseUser.getUid();
-        reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    User user = new User(userId, "default", "default", "offline", "user", "default");
-                    reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-                    reference.setValue(user);
-                }
-                Intent intent = new Intent(VerifyCodeActivity.this, MainActivity.class);
-//                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                finish();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
     }
 
     private void sendVerificationCode(String number) {

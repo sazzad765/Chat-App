@@ -48,10 +48,10 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         recyclerView = view.findViewById(R.id.recycler_view);
         txtNoData = view.findViewById(R.id.txtNoData);
-        
+
         mUsers = new ArrayList<>();
-        userAdapter=new UserAdapter(mUsers,true);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext() ,LinearLayoutManager.VERTICAL, false);
+        userAdapter = new UserAdapter(mUsers, true);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(userAdapter);
 
@@ -64,17 +64,17 @@ public class ChatFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 chatList.clear();
-                if (dataSnapshot.exists()){
-                    for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                         ChatList chatlist = snapshot.getValue(ChatList.class);
                         chatList.add(chatlist);
                     }
                     chatList();
                     txtNoData.setVisibility(View.INVISIBLE);
-                }else {
+                } else {
                     txtNoData.setVisibility(View.VISIBLE);
                 }
-                }
+            }
 
 
             @Override
@@ -89,7 +89,7 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
-    private void updateToken(String token){
+    private void updateToken(String token) {
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Tokens");
         Token token1 = new Token(token);
         reference.child(fUser.getUid()).setValue(token1);
@@ -101,10 +101,10 @@ public class ChatFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 mUsers.clear();
-                for (DataSnapshot snapshot : dataSnapshot.getChildren()){
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     User user = snapshot.getValue(User.class);
-                    for (ChatList chatlist : chatList){
-                        if (user.getId().equals(chatlist.getId())){
+                    for (ChatList chatlist : chatList) {
+                        if (user.getId().equals(chatlist.getId())) {
                             mUsers.add(user);
                         }
                     }

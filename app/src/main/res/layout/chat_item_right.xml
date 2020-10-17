@@ -12,12 +12,6 @@
         android:layout_alignParentEnd="true"
         android:layout_marginTop="8dp">
 
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/profile_image"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone" />
-
         <LinearLayout
             android:id="@+id/linearLayoutChat"
             android:layout_width="wrap_content"
@@ -30,8 +24,9 @@
                 android:id="@+id/chatImageView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:padding="8dp"
                 android:maxHeight="200dp"
+                android:background="@drawable/background_right"
                 android:adjustViewBounds="true"
                 android:visibility="gone"
                 android:src="@drawable/ic_launcher_foreground"

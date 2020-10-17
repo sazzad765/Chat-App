@@ -30,7 +30,6 @@
                 android:layout_height="100dp"
                 android:id="@+id/profile_image"
                 android:layout_centerHorizontal="true"
-                android:transitionName="profileImgTransition"
                 android:layout_marginTop="50dp"
                 android:src="@mipmap/ic_launcher"/>
 
@@ -41,7 +40,6 @@
                 android:layout_below="@id/profile_image"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="15dp"
-                android:transitionName="txtNameTransition"
                 android:textColor="@color/colorPrimaryDark"
                 android:textStyle="bold"
                 android:id="@+id/username"

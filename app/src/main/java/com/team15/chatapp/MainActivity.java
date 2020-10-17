@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -27,9 +29,8 @@ import com.team15.chatapp.Fragment.ProfileFragment;
 import com.team15.chatapp.Fragment.UserFragment;
 import com.team15.chatapp.Model.Chat;
 import com.team15.chatapp.Model.User;
-
+import com.team15.chatapp.ViewModel.UserViewModel;
 import java.util.HashMap;
-
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,43 +38,44 @@ public class MainActivity extends AppCompatActivity {
     private CircleImageView profile_image;
     private TextView username;
     private ImageView img_menu;
-
+    private UserViewModel userViewModel;
+    String userType = "user";
     FirebaseUser firebaseUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        bottom_menu = findViewById(R.id.bottom_menu);
-        profile_image = findViewById(R.id.profile_image);
-        username = findViewById(R.id.username);
-        img_menu = findViewById(R.id.img_menu);
-        bottom_menu.setItemSelected(R.id.menu_chat, true);
-        bottom_menu.setOnItemSelectedListener(listener);
-
+        init();
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users").child(firebaseUser.getUid());
-        reference.addValueEventListener(new ValueEventListener() {
+        setProfile();
+        img_menu.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                assert user != null;
+            public void onClick(View v) {
+                menuClick(v);
+            }
+        });
+        loadFragment(new ChatFragment());
+    }
+
+    private void setProfile() {
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
+        userViewModel.getUser(firebaseUser.getUid()).observe(this, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                userType = user.getUserType();
                 username.setText(user.getUsername());
-                if (user.getImageURL().equals("default")){
+                if (user.getImageURL().equals("default")) {
                     profile_image.setImageResource(R.mipmap.ic_launcher);
                 } else {
                     Glide.with(getApplicationContext()).load(user.getImageURL()).into(profile_image);
                 }
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
         });
 
-        DatabaseReference ref= FirebaseDatabase.getInstance().getReference("Chats");
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Chats");
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -94,18 +96,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-//        checkProfile();
-        img_menu.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                menuClick(v);
-            }
-        });
-        loadFragment(new ChatFragment());
     }
 
-
-    private void menuClick(View v){
+    private void menuClick(View v) {
         PopupMenu popup = new PopupMenu(this, v);
         popup.inflate(R.menu.top_menu);
         popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -131,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         popup.show();
     }
+
     ChipNavigationBar.OnItemSelectedListener listener = new ChipNavigationBar.OnItemSelectedListener() {
         @Override
         public void onItemSelected(int i) {
@@ -141,7 +135,10 @@ public class MainActivity extends AppCompatActivity {
                     loadFragment(fragment);
                     break;
                 case R.id.menu_users:
+                    Bundle bundle = new Bundle();
+                    bundle.putString("userType", userType);
                     fragment = new UserFragment();
+                    fragment.setArguments(bundle);
                     loadFragment(fragment);
                     break;
                 case R.id.menu_profile:
@@ -174,34 +171,19 @@ public class MainActivity extends AppCompatActivity {
         status("offline");
     }
 
-    private void checkProfile() {
-        assert firebaseUser != null;
-        String userId = firebaseUser.getUid();
-        DatabaseReference reference = FirebaseDatabase.getInstance().getReference("Users").child(userId);
-
-        reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    User user = snapshot.getValue(User.class);
-                    if (user.getUsername().equals("default")) {
-                        Intent intent = new Intent(MainActivity.this, CreateProfileActivity.class);
-                        startActivity(intent);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
-        });
-    }
-
     private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+    private void init() {
+        bottom_menu = findViewById(R.id.bottom_menu);
+        profile_image = findViewById(R.id.profile_image);
+        username = findViewById(R.id.username);
+        img_menu = findViewById(R.id.img_menu);
+        bottom_menu.setItemSelected(R.id.menu_chat, true);
+        bottom_menu.setOnItemSelectedListener(listener);
     }
 }
